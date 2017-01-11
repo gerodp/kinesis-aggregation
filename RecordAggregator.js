@@ -317,13 +317,13 @@ RecordAggregator.prototype.aggregateRecords = function(records, forceFlush,
 				
 				// if the size of this record would push us over the limit,
 				// then encode the current set
-				if (newBytes > this.maxKinesisPayloadSize) {
+				if (newBytes > self.maxKinesisPayloadSize) {
 					onReadyCallback('Input record (PK=' + record.PartitionKey + 
 									', EHK=' + record.ExplicitHashKey + 
 									', SizeBytes=' + newBytes + 
 									') is too large to fit inside a single Kinesis record.');
 				}
-				else if ((self.totalBytes + newBytes) > this.maxKinesisPayloadSize) {
+				else if ((self.totalBytes + newBytes) > self.maxKinesisPayloadSize) {
 					if(debug) { console.log("calculated totalBytes=" + self.totalBytes); }
 					
 					// flush with a copy of the current inflight records
