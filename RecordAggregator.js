@@ -5,7 +5,7 @@
 
         http://aws.amazon.com/asl/
 
-    or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions and limitations under the License. 
+    or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
 'use strict';
@@ -178,22 +178,22 @@ function aggregate(records, callback) {
 				records : debugRecords
 			}));
 		}
-		
+
 		var bufferData = protoData.toBuffer();
-		
+
 		// get the md5 for the encoded data
 		var md5 = crypto.createHash('md5');
 		md5.update(bufferData);
 		var checksum = md5.digest();
 
 		if (debug) { console.log("Checksum: " + checksum.toString('base64')); }
-		
+
 		// create the final object as a concatenation of the magic KPL number,
 		// the encoded data records, and the md5 checksum
 		if(debug) { console.log("actual totalBytes=" + Buffer.byteLength(bufferData,'binary')); }
 		var finalBuffer = Buffer.concat([ magic, bufferData, checksum ]);
 		if(debug) { console.log("final totalBytes=" + Buffer.byteLength(finalBuffer,'binary')); }
-		
+
 		// call the provided callback with no-error and the final value
 		callback(null, finalBuffer);
 	} catch (e) {
@@ -290,7 +290,7 @@ RecordAggregator.prototype.aggregateRecords = function(records, forceFlush,
 				}
 
 				if (typeof (record.Data) === 'string') {
-					record.Data = new Buffer(record.Data, 'binary');
+					record.Data = Buffer.from(record.Data, 'utf8');
 				}
 				var dataLength = Buffer.byteLength(record.Data, 'binary');
 
@@ -314,18 +314,18 @@ RecordAggregator.prototype.aggregateRecords = function(records, forceFlush,
 							+ self.totalBytes + " bytes");
 					console.log("Next: " + newBytes + " bytes");
 				}
-				
+
 				// if the size of this record would push us over the limit,
 				// then encode the current set
 				if (newBytes > self.maxKinesisPayloadSize) {
-					onReadyCallback('Input record (PK=' + record.PartitionKey + 
-									', EHK=' + record.ExplicitHashKey + 
-									', SizeBytes=' + newBytes + 
+					onReadyCallback('Input record (PK=' + record.PartitionKey +
+									', EHK=' + record.ExplicitHashKey +
+									', SizeBytes=' + newBytes +
 									') is too large to fit inside a single Kinesis record.');
 				}
 				else if ((self.totalBytes + newBytes) > self.maxKinesisPayloadSize) {
 					if(debug) { console.log("calculated totalBytes=" + self.totalBytes); }
-					
+
 					// flush with a copy of the current inflight records
 					flush(_.clone(self.putRecords), onReadyCallback);
 					self.clearRecords();
